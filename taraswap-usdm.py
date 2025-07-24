@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
-import csv
+import json
+import os
 import requests
-import argparse
 from decimal import Decimal
 from collections import defaultdict
 
@@ -14,11 +14,9 @@ GRAPHQL_URL = "https://indexer.lswap.app/subgraphs/name/taraxa/uniswap-v3"
 
 # List of pools to scan
 POOL_ADDRESSES = [
-"0x66c4c7a91f9c42259c52a415ebba9866bbb4179a"
+    "0x66c4c7a91f9c42259c52a415ebba9866bbb4179a"
     # You can add more pool addresses here
 ]
-
-#     "0x66c4c7a91f9c42259c52a415ebba9866bbb4179a", "0xb8477f685473cb0c356eb9c56004da1ceef6cb9d","0x02e6ddd40b336247174f37bfa3119ef819db1ef3","0x2d8bd8ae0060192547d60a4b148a372bd7851825"
 
 # Token within the LP we care about
 TARGET_TOKEN = "0xC26B690773828999c2612549CC815d1F252EA15e".lower()
@@ -98,10 +96,9 @@ def get_token_amounts(
 # ─── SCRIPT MAIN ──────────────────────────────────────────────────────────────
 
 def main(block_number: int):
-    output_file = None
     """
     Fetches all positions at a historic block, calculates the real underlying
-    token balances, and aggregates them by owner.
+    token balances, aggregates them by owner, and writes to a JSON file.
     """
     owner_totals = defaultdict(Decimal)
 
@@ -129,7 +126,6 @@ def main(block_number: int):
                 token0_id = pool['token0']['id'].lower()
                 token1_id = pool['token1']['id'].lower()
 
-                # Ensure we have the necessary data to proceed
                 if not pool['tick']:
                     continue
 
@@ -150,20 +146,26 @@ def main(block_number: int):
 
             skip += PAGE_SIZE
 
-    print("\nProcessing complete. Formatting output...", file=sys.stderr)
-    rows = [[owner, str(total)] for owner, total in owner_totals.items() if total > 0]
-    rows.sort(key=lambda r: Decimal(r[1]), reverse=True)
+    # --- Create JSON Output ---
+    print("\nProcessing complete. Formatting JSON output...", file=sys.stderr)
 
-    if output_file:
-        with open(output_file, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["owner", f"historic_balance_{TARGET_TOKEN[-6:]}"])
-            writer.writerows(rows)
-        print(f"Results for {len(rows)} owners written to {output_file}", file=sys.stderr)
-    else:
-        print(f"\nowner,historic_balance_{TARGET_TOKEN[-6:]}")
-        for r in rows:
-            print(",".join(r))
+    # Define output directory and filename
+    output_dir = "json"
+    output_file = f"{output_dir}/lp_balances_{TARGET_TOKEN[-6:]}_block_{block_number}.json"
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Convert defaultdict of Decimals to a regular dict of strings for JSON serialization
+    output_data = {
+        owner: str(total)
+        for owner, total in owner_totals.items()
+        if total > 0
+    }
+
+    # Write the data to a JSON file
+    with open(output_file, "w") as f:
+        json.dump(output_data, f, indent=4)
+
+    print(f"Results for {len(output_data)} owners written to {output_file}", file=sys.stderr)
 
 if __name__ == "__main__":
     block = 19916232
