@@ -5,7 +5,7 @@ from web3 import Web3
 import config.abis as abis
 
 
-# Ensure the list of holders has unique addresses
+# List of non-zero balance USDM address from Tara.to
 usdm_holders = list(set([
     "0xf6Ad62cCa52a5d3c5d567303347E013c2dadec92",
     "0x02e6ddd40b336247174F37bFA3119eF819db1ef3",
@@ -37,9 +37,7 @@ usdm_holders = list(set([
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 
-# NOTE: This script requires 'trove_manager_abi.json' to be in the same directory.
 
-# Ethereum JSON-RPC endpoint
 WEB3_PROVIDER_URI = "https://rpc.mainnet.taraxa.io"
 
 # Contract Addresses
@@ -53,8 +51,6 @@ w3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER_URI))
 # ─── Load ABIs ─────────────────────────────────────────────────────────────────
 
 # TroveManager ABI
-
-
 trove_contract = w3.eth.contract(
     address=w3.to_checksum_address(TROVE_MANAGER_ADDRESS),
     abi=abis.troveManager()
@@ -86,7 +82,6 @@ def main():
         owner = trove_contract.functions.getTroveFromTroveOwnersArray(i).call(block_identifier=block)
         debt_raw, coll_raw, *_ = trove_contract.functions.Troves(owner).call(block_identifier=block)
         
-        # Convert from Wei to Ether and then to string to preserve precision
         debt = w3.from_wei(debt_raw, "ether")
         coll = w3.from_wei(coll_raw, "ether")
         
