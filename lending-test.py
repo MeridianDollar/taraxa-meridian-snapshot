@@ -8,23 +8,23 @@ import config.abis as abis
 # ------------------------------------------
 # 1. Configuration
 # ------------------------------------------
-RPC_URLS = ["https://rpc.mainnet.taraxa.io"]
+RPC_URLS = ["https://rpc.telos.net"]
 
 CONTRACTS = {
-    "lendingPoolAddressProvider": "0x0EdbA5d821B9BCc1654aEf00F65188de636951fa",
-    "protocolDataProvider":       "0x0208E7B745591f6c2F02B4DcF53B3e1f11c671df",
+    "lendingPoolAddressProvider": "0x703cF2C85EA76C54bd863337585673B3DF8FCE72",
+    "protocolDataProvider":       "0x6DE58d6dBECF87D7cE972f6E4838fEeCc63B4c5e",
 }
 
-USDM_UNDERLYING = Web3.to_checksum_address("0xC26B690773828999c2612549CC815d1F252EA15e")
-USDT_UNDERLYING = Web3.to_checksum_address("0x69D411CbF6dBaD54Bfe36f81d0a39922625bC78c")
+USDM_UNDERLYING = Web3.to_checksum_address("0x8f7D64ea96D729EF24a0F30b4526D47b80d877B9")
+USDT_UNDERLYING = Web3.to_checksum_address("0x975Ed13fa16857E83e7C493C7741D556eaaD4A3f")
 
 # Padded addresses for efficient topic filtering
 PADDED_USDM_TOPIC = "0x" + USDM_UNDERLYING[2:].lower().zfill(64)
 PADDED_USDT_TOPIC = "0x" + USDT_UNDERLYING[2:].lower().zfill(64)
 TARGET_TOPICS = [PADDED_USDM_TOPIC, PADDED_USDT_TOPIC]
 
-BLOCK_INCREMENT   = 30000
-BALANCE_BLOCK     = 19916232  # <-- scan stops here
+BLOCK_INCREMENT   = 100000
+BALANCE_BLOCK     = 416907698  # <-- scan stops here
 
 OUT_DEPOSITORS    = "json/depositors_usdm_usdt_taraxa.json"
 OUT_BALANCES      = f"json/depositor_balances_block_{BALANCE_BLOCK}.json"
@@ -100,6 +100,8 @@ def fetch_depositors_in_range(w3, contract_address, from_block, to_block):
             print(f"Error fetching {start}–{end}: {e}", file=sys.stderr)
 
     return all_depositors
+
+# ------------------------------------------
 # 4. Main Workflow
 # ------------------------------------------
 def main():
@@ -115,7 +117,7 @@ def main():
 
     # 4a) Scan depositors up to BALANCE_BLOCK for both USDM & USDT
     print(f"\nScanning deposit events up to block {BALANCE_BLOCK}...")
-    depositors = fetch_depositors_in_range(w3, lending_pool_addr, 13672421, BALANCE_BLOCK)
+    depositors = fetch_depositors_in_range(w3, lending_pool_addr,413996255, BALANCE_BLOCK)
 
     # Save depositor list
     depositor_list = sorted(depositors)

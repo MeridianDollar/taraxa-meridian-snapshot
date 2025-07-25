@@ -1,5 +1,12 @@
 {
-    "block_scanned_up_to": 15712781,
-    "total_depositors": 0,
-    "depositors": []
+    "block_scanned_up_to": 416907698,
+    "total_depositors": 6,
+    "depositors": [
+        "0x674843C06FF83502ddb4D37c2E09C01cdA38cbc8",
+        "0x8f7D64ea96D729EF24a0F30b4526D47b80d877B9",
+        "0xB4B01216a5Bc8F1C8A33CD990A1239030E60C905",
+        "0xBAb93B7ad7fE8692A878B95a8e689423437cc500",
+        "0xD102cE6A4dB07D247fcc28F366A623Df0938CA9E",
+        "0xF1815bd50389c46847f0Bda824eC8da914045D14"
+    ]
 }
