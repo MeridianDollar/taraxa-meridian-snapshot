@@ -8,7 +8,7 @@ import config.abis as abis
 # ------------------------------------------
 # 1. Configuration
 # ------------------------------------------
-RPC_URLS = ["https://rpc.mainnet.taraxa.io"]
+RPC_URLS = ["https://rpc-private.mainnet.taraxa.io"]
 
 CONTRACTS = {
     "lendingPoolAddressProvider": "0x0EdbA5d821B9BCc1654aEf00F65188de636951fa",
@@ -23,7 +23,7 @@ PADDED_USDM_TOPIC = "0x" + USDM_UNDERLYING[2:].lower().zfill(64)
 PADDED_USDT_TOPIC = "0x" + USDT_UNDERLYING[2:].lower().zfill(64)
 TARGET_TOPICS = [PADDED_USDM_TOPIC, PADDED_USDT_TOPIC]
 
-BLOCK_INCREMENT   = 30000
+BLOCK_INCREMENT   = 1000
 BALANCE_BLOCK     = 19916232  # <-- scan stops here
 
 OUT_DEPOSITORS    = "json/depositors_usdm_usdt_taraxa.json"
@@ -79,8 +79,8 @@ def fetch_depositors_in_range(w3, contract_address, from_block, to_block):
         print(f"Scanning Deposit events from {start} to {end}…")
 
         filter_params = {
-            "fromBlock": start,
-            "toBlock":   end,
+            "from_block": start,
+            "to_block":   end,
             "address":   contract_address,
             "topics":    [[deposit_topic]],
         }
@@ -110,12 +110,14 @@ def main():
         address=CONTRACTS["lendingPoolAddressProvider"],
         abi=abis.lendingPoolAddressProvider()
     )
+    
+    print(w3, "here")
     lending_pool_addr = lp_provider.functions.getLendingPool().call()
     print(f"LendingPool address resolved to: {lending_pool_addr}")
 
     # 4a) Scan depositors up to BALANCE_BLOCK for both USDM & USDT
     print(f"\nScanning deposit events up to block {BALANCE_BLOCK}...")
-    depositors = fetch_depositors_in_range(w3, lending_pool_addr, 13672421, BALANCE_BLOCK)
+    depositors = fetch_depositors_in_range(w3, lending_pool_addr, 16792600, BALANCE_BLOCK)
 
     # Save depositor list
     depositor_list = sorted(depositors)

@@ -4,11 +4,6 @@ import sys
 from hexbytes import HexBytes
 from web3 import Web3, HTTPProvider
 import config.abis as abis
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("web3.providers.rpc").setLevel(logging.DEBUG)
-
 
 # ------------------------------------------
 # 1. Configuration

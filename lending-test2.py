@@ -1,35 +1,28 @@
+import logging
+
+# Add this to see the raw RPC requests and responses
+logging.basicConfig(level=logging.DEBUG)
+
 import json
 import os
 import sys
 from hexbytes import HexBytes
 from web3 import Web3, HTTPProvider
 import config.abis as abis
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("web3.providers.rpc").setLevel(logging.DEBUG)
-
 
 # ------------------------------------------
 # 1. Configuration
 # ------------------------------------------
-RPC_URLS = ["https://rpc.telos.net"]
+RPC_URLS = ["https://rpc-private.mainnet.taraxa.io"]
 
 CONTRACTS = {
-    "lendingPoolAddressProvider": "0x703cF2C85EA76C54bd863337585673B3DF8FCE72",
-    "protocolDataProvider":       "0x6DE58d6dBECF87D7cE972f6E4838fEeCc63B4c5e",
+    "lendingPoolAddressProvider": "0x0EdbA5d821B9BCc1654aEf00F65188de636951fa",
+    "protocolDataProvider":       "0x0208E7B745591f6c2F02B4DcF53B3e1f11c671df",
 }
 
-USDM_UNDERLYING = Web3.to_checksum_address("0x8f7D64ea96D729EF24a0F30b4526D47b80d877B9")
-USDT_UNDERLYING = Web3.to_checksum_address("0x975Ed13fa16857E83e7C493C7741D556eaaD4A3f")
 
-# Padded addresses for efficient topic filtering
-PADDED_USDM_TOPIC = "0x" + USDM_UNDERLYING[2:].lower().zfill(64)
-PADDED_USDT_TOPIC = "0x" + USDT_UNDERLYING[2:].lower().zfill(64)
-TARGET_TOPICS = [PADDED_USDM_TOPIC, PADDED_USDT_TOPIC]
-
-BLOCK_INCREMENT   = 100000
-BALANCE_BLOCK     = 416907698  # <-- scan stops here
+BLOCK_INCREMENT   = 1000
+BALANCE_BLOCK     = 19916232  # <-- scan stops here
 
 OUT_DEPOSITORS    = "json/depositors_usdm_usdt_taraxa.json"
 OUT_BALANCES      = f"json/depositor_balances_block_{BALANCE_BLOCK}.json"
@@ -91,20 +84,24 @@ def fetch_depositors_in_range(w3, contract_address, from_block, to_block):
 # ------------------------------------------
 # 4. Main Workflow
 # ------------------------------------------
-def main():
-    w3 = get_provider(RPC_URLS)
+# def main():
+#     w3 = get_provider(RPC_URLS)
 
-    # Resolve LendingPool
-    lp_provider = w3.eth.contract(
-        address=CONTRACTS["lendingPoolAddressProvider"],
-        abi=abis.lendingPoolAddressProvider()
-    )
-    lending_pool_addr = lp_provider.functions.getLendingPool().call()
-    print(f"LendingPool address resolved to: {lending_pool_addr}")
+#     # Resolve LendingPool
+#     lp_provider = w3.eth.contract(
+#         address=CONTRACTS["lendingPoolAddressProvider"],
+#         abi=abis.lendingPoolAddressProvider()
+#     )
+#     lending_pool_addr = lp_provider.functions.getLendingPool().call()
+#     print(f"LendingPool address resolved to: {lending_pool_addr}")
 
-    # 4a) Scan depositors up to BALANCE_BLOCK
-    print(f"\nScanning deposit events up to block {BALANCE_BLOCK}...")
-    depositors = fetch_depositors_in_range(w3, lending_pool_addr,413996255, BALANCE_BLOCK)
+#     # 4a) Scan depositors up to BALANCE_BLOCK
+#     print(f"\nScanning deposit events up to block {BALANCE_BLOCK}...")
+#     depositors = fetch_depositors_in_range(w3, lending_pool_addr,16792600, BALANCE_BLOCK)
 
-if __name__ == "__main__":
-    main()
+
+# if __name__ == "__main__":
+#     main()
+
+w3 = get_provider(RPC_URLS)
+depositors = fetch_depositors_in_range(w3, "0x4682f6BC97D7ee6ecF264Ed624374D5Ab7d0E184",16986000, BALANCE_BLOCK)
