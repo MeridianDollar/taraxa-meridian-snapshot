@@ -1,92 +1,6 @@
 {
     "block": 19916232,
     "accounts": {
-        "0x1302A3F8901C5f0A471Fd454C250b03Ce02BA8B1": {
-            "deposits": {
-                "WTARA": 141.00630294253156,
-                "wstTARA": 5728507.065687413
-            },
-            "debt": {
-                "WTARA": {
-                    "variable": 1720950.6142189095
-                }
-            }
-        },
-        "0x2e7B6a702c62d513a0D7857b552c17323049972A": {
-            "deposits": {
-                "wstTARA": 43946.781383576264
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 41.800051
-                }
-            }
-        },
-        "0x31e40209CFcdDa86bAabfe93a428CC9143A9eD30": {
-            "deposits": {
-                "WTARA": 63511.023630979456
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 37.960862
-                }
-            }
-        },
-        "0x3D96e54c8df824EE89aCecA1F98072D957f5Ec36": {
-            "deposits": {
-                "WTARA": 177375.46490090553
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 128.271671
-                }
-            }
-        },
-        "0x4329FFAE86073127d8E63e80E18Aaa2a1F842d36": {
-            "deposits": {
-                "WTARA": 695633.505114772
-            }
-        },
-        "0x45AaBe4C097495e4CAA481A4F612FdBcE7A7531B": {
-            "deposits": {
-                "WTARA": 394962.4311676175
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 259.537584
-                }
-            }
-        },
-        "0x48870e34d9DCca87Ac6A832774cF2F35D759519b": {
-            "deposits": {
-                "WTARA": 100.27563925970126
-            },
-            "debt": {
-                "WTARA": {
-                    "variable": 25.34851819103267
-                }
-            }
-        },
-        "0x610B40B7085eEf48C28434468Cf837907f0b11f9": {
-            "deposits": {
-                "WTARA": 2243514.816860422
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 1956.828059
-                }
-            }
-        },
-        "0x6137eA50d07D92654e4F4e50451e1Ebf4Ef41576": {
-            "deposits": {
-                "WTARA": 701169.9923441799
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 807.915542
-                }
-            }
-        },
         "0x77f2B73DC975a6E9172BB871FDaC31eBcC04C25a": {
             "deposits": {
                 "USDT": 0.010003
@@ -137,44 +51,9 @@
                 }
             }
         },
-        "0xA272842ddc48Bea2bDce4bf51b712efAAff76cC7": {
-            "deposits": {
-                "WTARA": 1430455.1692988412
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 327.191236
-                }
-            }
-        },
-        "0xA4a6f061DD72ffd5132A7d5765845A1fBCf6e792": {
-            "deposits": {
-                "WTARA": 1.0027564205558053
-            }
-        },
-        "0xC2c1c7BA03973C011D09A56fF0E6862e41c52502": {
-            "deposits": {
-                "WTARA": 100.43244873394417
-            }
-        },
-        "0xCDdd8Db2ac114724362c24B93ee56421Fd10E6f2": {
-            "deposits": {
-                "wstTARA": 1284108.4670862989
-            },
-            "debt": {
-                "WTARA": {
-                    "variable": 584482.1248979815
-                },
-                "ETH": {
-                    "variable": 5.195633072709e-06
-                }
-            }
-        },
-        "0xD7E043aC10b104d4E471B1d64253840D2479e1C9": {
-            "deposits": {
-                "wstTARA": 40708.65658130171
-            }
-        },
+
+
+
         "0xD99C4D9eb46f3411415bA7C381D72aa9C4DbF334": {
             "deposits": {
                 "USDT": 16069.390586
@@ -182,68 +61,6 @@
             "debt": {
                 "WTARA": {
                     "variable": 2008747.5240268644
-                }
-            }
-        },
-        "0xE6339c6f56d44719b6ae1264ea9B4f5eD1710bbE": {
-            "deposits": {
-                "WTARA": 14422.625466669195,
-                "wstTARA": 1004535.9386758187
-            },
-            "debt": {
-                "WTARA": {
-                    "variable": 245764.30906795408
-                },
-                "USDM": {
-                    "variable": 4.515583060063643
-                },
-                "USDT": {
-                    "variable": 50.105913
-                }
-            }
-        },
-        "0xEed71d0f7128eAEB51Efe0E840a927A9Ed02C7e7": {
-            "deposits": {
-                "WTARA": 1335301.6829420521
-            },
-            "debt": {
-                "WTARA": {
-                    "variable": 663552.4677227869
-                }
-            }
-        },
-        "0xF995390A0fEce62ebf32e7C387023ee4f06C3948": {
-            "deposits": {
-                "WTARA": 0.02705235854305221
-            }
-        },
-        "0xFA985A9212161e0b515D65711A73f60ba57523a5": {
-            "deposits": {
-                "wstTARA": 2000289.026949196
-            }
-        },
-        "0xFB780Ff2c8b43b9e4d04FB6BC872d40256dF775F": {
-            "deposits": {
-                "WTARA": 220077.30757477728
-            },
-            "debt": {
-                "USDT": {
-                    "variable": 150.074243
-                }
-            }
-        },
-        "0xb64eEcC4D8a29A8d581e8186D960dDfC6e2975CE": {
-            "deposits": {
-                "wstTARA": 10001.220301253263
-            }
-        },
-        "0xf2351033E30F8A34A75cEd89108Bb8C24D11E584": {
-            "deposits": {
-                "wstTARA": 0.20322100208066252
-            },
-            "debt": {
-                "wstTARA": {
-                    "variable": 0.000864830726884363
                 }
             }
         }
