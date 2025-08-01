@@ -8,26 +8,18 @@ import config.abis as abis
 # ------------------------------------------
 # 1. Configuration
 # ------------------------------------------
-RPC_URLS = ["https://rpc-private.mainnet.taraxa.io"]
+RPC_URLS = ["https://rpc.mainnet.taraxa.io"]
 
 CONTRACTS = {
     "lendingPoolAddressProvider": "0x0EdbA5d821B9BCc1654aEf00F65188de636951fa",
     "protocolDataProvider":       "0x0208E7B745591f6c2F02B4DcF53B3e1f11c671df",
 }
 
-USDM_UNDERLYING = Web3.to_checksum_address("0xC26B690773828999c2612549CC815d1F252EA15e")
-USDT_UNDERLYING = Web3.to_checksum_address("0x69D411CbF6dBaD54Bfe36f81d0a39922625bC78c")
-
-# Padded addresses for efficient topic filtering
-PADDED_USDM_TOPIC = "0x" + USDM_UNDERLYING[2:].lower().zfill(64)
-PADDED_USDT_TOPIC = "0x" + USDT_UNDERLYING[2:].lower().zfill(64)
-TARGET_TOPICS = [PADDED_USDM_TOPIC, PADDED_USDT_TOPIC]
-
-BLOCK_INCREMENT   = 1000
+BLOCK_INCREMENT   = 10000
 BALANCE_BLOCK     = 19916232  # <-- scan stops here
 
-OUT_DEPOSITORS    = "json/depositors_usdm_usdt_taraxa.json"
-OUT_BALANCES      = f"json/depositor_balances_block_{BALANCE_BLOCK}.json"
+OUT_DEPOSITORS    = "json/depositors_all_reserves_taraxa.json"
+OUT_BALANCES      = f"json/lending_depositor_balances_block_{BALANCE_BLOCK}.json"
 
 # ------------------------------------------
 # 2. Helpers
@@ -49,127 +41,133 @@ def safe_write_json(data, filepath):
     with open(filepath, "w") as f:
         json.dump(data, f, indent=4)
 
-# Helper to format a log object for printing.
-def log_formatter(log_obj):
-    """Converts a log object to a nicely formatted JSON string."""
-    def json_encoder(o):
-        if isinstance(o, HexBytes):
-            return o.hex()
-        if isinstance(o, bytes):
-            return o.hex()
-        return json.JSONEncoder.default(json.JSONEncoder(), o)
-
-    return json.dumps(log_obj, indent=4, default=json_encoder)
-
 # ------------------------------------------
-# 3. Fetch and Print Deposit Events in Chunks
+# 3. Fetch Depositors
 # ------------------------------------------
 def fetch_depositors_in_range(w3, contract_address, from_block, to_block):
-    """
-    Fetch all Deposit events between from_block and to_block in BLOCK_INCREMENT chunks.
-    Returns a set of depositor addresses.
-    """
-    # Only one signature → one topic
     deposit_signature = "Deposit(address,address,address,uint256,uint16)"
-    deposit_topic = w3.keccak(text=deposit_signature).hex()
-    all_depositors = set()
+    deposit_topic     = w3.keccak(text=deposit_signature).hex()
+    all_depositors    = set()
 
     for start in range(from_block, to_block + 1, BLOCK_INCREMENT):
         end = min(start + BLOCK_INCREMENT - 1, to_block)
-        print(f"Scanning Deposit events from {start} to {end}…")
+        print(f"Scanning logs from {start} to {end}…")
 
-        filter_params = {
-            "from_block": start,
-            "to_block":   end,
+        logs = w3.eth.get_logs({
+            "fromBlock": start,
+            "toBlock":   end,
             "address":   contract_address,
-            "topics":    [[deposit_topic]],
-        }
+        })
 
-        try:
-            logs = w3.eth.get_logs(filter_params)
-            print(f"  → {len(logs)} logs")
+        for log in logs:
+            if not log.get("topics"):
+                continue
+            if log["topics"][0].hex() != deposit_topic:
+                continue
+            if len(log["topics"]) < 3:
+                continue
 
-            for log in logs:
-                # topic[1] is the indexed depositor address
-                if len(log["topics"]) > 1:
-                    addr_hex = log["topics"][1].hex()  # "0x0000…abcd"
-                    depositor = Web3.to_checksum_address("0x" + addr_hex[-40:])
-                    all_depositors.add(depositor)
-
-        except Exception as e:
-            print(f"Error fetching {start}–{end}: {e}", file=sys.stderr)
+            raw = log["topics"][2].hex()
+            depositor = Web3.to_checksum_address("0x" + raw[-40:])
+            all_depositors.add(depositor)
 
     return all_depositors
+
+# ------------------------------------------
 # 4. Main Workflow
 # ------------------------------------------
 def main():
     w3 = get_provider(RPC_URLS)
 
-    # Resolve LendingPool
+    # Resolve LendingPool address
     lp_provider = w3.eth.contract(
         address=CONTRACTS["lendingPoolAddressProvider"],
         abi=abis.lendingPoolAddressProvider()
     )
-    
-    print(w3, "here")
     lending_pool_addr = lp_provider.functions.getLendingPool().call()
     print(f"LendingPool address resolved to: {lending_pool_addr}")
 
-    # 4a) Scan depositors up to BALANCE_BLOCK for both USDM & USDT
+    # 4a) Scan depositors
     print(f"\nScanning deposit events up to block {BALANCE_BLOCK}...")
-    depositors = fetch_depositors_in_range(w3, lending_pool_addr, 16792600, BALANCE_BLOCK)
-
-    # Save depositor list
+    depositors = fetch_depositors_in_range(
+        w3, lending_pool_addr, 16710850, BALANCE_BLOCK
+    )
     depositor_list = sorted(depositors)
-    safe_write_json({
-        "block_scanned_up_to": BALANCE_BLOCK,
-        "total_depositors": len(depositor_list),
-        "depositors": depositor_list
-    }, OUT_DEPOSITORS)
-    print(f">> Found {len(depositor_list)} unique depositors; saved to {OUT_DEPOSITORS}")
 
     if not depositor_list:
         print("No depositors found. Exiting.")
         return
 
-    # 4b) Fetch balances at BALANCE_BLOCK
-    print(f"\nFetching aToken balances at block {BALANCE_BLOCK}...")
+    # Save depositors list
+    safe_write_json({
+        "block_scanned_up_to": BALANCE_BLOCK,
+        "total_depositors": len(depositor_list),
+        "depositors": depositor_list
+    }, OUT_DEPOSITORS)
+    print(f">> Saved {len(depositor_list)} depositors to {OUT_DEPOSITORS}")
+
+    # 4b) Fetch deposit & debt balances for ALL reserves
+    print(f"\nFetching deposit & debt balances at block {BALANCE_BLOCK}...")
     data_provider = w3.eth.contract(
         address=CONTRACTS["protocolDataProvider"],
         abi=abis.protocolDataProvider()
     )
-    erc20_abi = abis.erc20()
+    erc20_abi = abis.token()
 
-    a_usdm, _, _ = data_provider.functions.getReserveTokensAddresses(USDM_UNDERLYING).call()
-    a_usdt, _, _ = data_provider.functions.getReserveTokensAddresses(USDT_UNDERLYING).call()
+    # Get all reserves (symbol, underlying)
+    reserves = data_provider.functions.getAllReservesTokens().call()
+    reserve_list = [(symbol, Web3.to_checksum_address(addr)) for symbol, addr in reserves]
 
-    a_usdm_ct = w3.eth.contract(address=a_usdm, abi=erc20_abi)
-    a_usdt_ct = w3.eth.contract(address=a_usdt, abi=erc20_abi)
-    dec_usdm  = a_usdm_ct.functions.decimals().call()
-    dec_usdt  = a_usdt_ct.functions.decimals().call()
+    # Prepare token contracts and decimals
+    token_contracts = {}
+    decimals = {}
+    for symbol, underlying in reserve_list:
+        a_token, stable_token, variable_token = data_provider.functions.getReserveTokensAddresses(underlying).call()
+        token_contracts[(symbol, 'a')]        = w3.eth.contract(address=a_token,        abi=erc20_abi)
+        token_contracts[(symbol, 'stable')]   = w3.eth.contract(address=stable_token,   abi=erc20_abi)
+        token_contracts[(symbol, 'variable')] = w3.eth.contract(address=variable_token, abi=erc20_abi)
+        decimals[(symbol, 'a')]        = token_contracts[(symbol, 'a')].functions.decimals().call()
+        decimals[(symbol, 'stable')]   = token_contracts[(symbol, 'stable')].functions.decimals().call()
+        decimals[(symbol, 'variable')] = token_contracts[(symbol, 'variable')].functions.decimals().call()
 
-    balances = {}
+    # Collect balances per user and reserve
+    results = {}
     for i, user in enumerate(depositor_list):
         if (i + 1) % 50 == 0:
-            print(f"  ...fetched balances for {i+1}/{len(depositor_list)} users")
-        try:
-            raw_usdm = a_usdm_ct.functions.balanceOf(user).call(block_identifier=BALANCE_BLOCK)
-            raw_usdt = a_usdt_ct.functions.balanceOf(user).call(block_identifier=BALANCE_BLOCK)
-            if raw_usdm == 0 and raw_usdt == 0:
-                continue
-            balances[user] = {
-                "USDM": raw_usdm / (10 ** dec_usdm),
-                "USDT": raw_usdt / (10 ** dec_usdt),
-            }
-        except Exception as e:
-            print(f"ERROR: Could not fetch balance for user {user}. Reason: {e}", file=sys.stderr)
+            print(f"  ...processed {i+1}/{len(depositor_list)} users")
 
+        user_deposits = {}
+        user_debt = {}
+
+        for symbol, _ in reserve_list:
+            raw_deposit  = token_contracts[(symbol, 'a')].functions.balanceOf(user).call(block_identifier=BALANCE_BLOCK)
+            raw_stable   = token_contracts[(symbol, 'stable')].functions.balanceOf(user).call(block_identifier=BALANCE_BLOCK)
+            raw_variable = token_contracts[(symbol, 'variable')].functions.balanceOf(user).call(block_identifier=BALANCE_BLOCK)
+
+            # Only include if non-zero
+            if raw_deposit > 0:
+                user_deposits[symbol] = raw_deposit / 10**decimals[(symbol, 'a')]
+            if raw_stable > 0 or raw_variable > 0:
+                debt_entry = {}
+                if raw_stable > 0:
+                    debt_entry['stable'] = raw_stable / 10**decimals[(symbol, 'stable')]
+                if raw_variable > 0:
+                    debt_entry['variable'] = raw_variable / 10**decimals[(symbol, 'variable')]
+                user_debt[symbol] = debt_entry
+
+        if user_deposits or user_debt:
+            results[user] = {}
+            if user_deposits:
+                results[user]['deposits'] = user_deposits
+            if user_debt:
+                results[user]['debt'] = user_debt
+
+    # Write out balances
     safe_write_json({
         "block": BALANCE_BLOCK,
-        "balances": balances
+        "accounts": results
     }, OUT_BALANCES)
-    print(f">> Wrote non-zero balances for {len(balances)} depositors to {OUT_BALANCES}")
-
+    print(f">> Wrote balances for {len(results)} users to {OUT_BALANCES}")
 
 if __name__ == "__main__":
     main()
