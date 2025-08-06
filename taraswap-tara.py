@@ -168,5 +168,5 @@ def main(block_number: int):
     print(f"Results for {len(output_data)} owners written to {output_file}", file=sys.stderr)
 
 if __name__ == "__main__":
-    block = 19916232
+    block = 19926232
     main(block_number=block)
